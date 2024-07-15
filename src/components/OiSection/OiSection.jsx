@@ -19,7 +19,7 @@ const OiSection = ({ oneScript, symbolSpecify }) => {
     const [endRange, setEndRange] = useState(['Loading...'])
 
     // Fields data
-    const [symbolValue, setSymbolValue] = useState('')
+    const [symbolValue, setSymbolValue] = useState('Loading...')
     const [expiryValue, setExpiryValue] = useState({date: '', expiry: ''})
     const [intervalValue, setIntervelValue] = useState('5minute')
     const [historical, setHistorical] = useState('')
@@ -28,7 +28,7 @@ const OiSection = ({ oneScript, symbolSpecify }) => {
 
     useEffect(() => {
         // Fetch symbols for filter
-        axios.get(`${server}/fyers/nfo-symbols`)
+        axios.get(`${server}/breeze/nfo-symbols`)
             .then((response) => {
                 setSymbols(response.data)
 
@@ -103,7 +103,7 @@ const OiSection = ({ oneScript, symbolSpecify }) => {
         }
 
         const formData = {
-            symbol: symbolValue || symbols[0],
+            symbol: symbolValue || symbols[0].name,
             expiryDate: expiryValue.date || expiry[0].date,
             intervel: intervalValue,
             historical: historicalDate,
@@ -119,7 +119,9 @@ const OiSection = ({ oneScript, symbolSpecify }) => {
     }
 
     const refreshExpiry = (e) => {
-        const symbol = e.target.value
+        let index = e.nativeEvent.target.selectedIndex;
+        const symbol = e.nativeEvent.target[index].text
+        
         axios.get(`${server}/fyers/expiry/${symbol}`)
             .then((response) => {
                 const expiry = response.data ? response.data : []
@@ -131,7 +133,9 @@ const OiSection = ({ oneScript, symbolSpecify }) => {
     }
 
     const refreshStrikePrice = (e) => {
-        const symbol = e.target.value;
+        let index = e.nativeEvent.target.selectedIndex;
+        const symbol = e.nativeEvent.target[index].text
+
         axios.get(`${server}/fyers/strike-price/${symbol}`)
             .then((res) => {
                 if (res.data && res.data.length > 0) {
@@ -240,8 +244,8 @@ const OiSection = ({ oneScript, symbolSpecify }) => {
                                         symbols.map((symbol, index) => (
                                             <option
                                                 key={index}
-                                                value={symbol}
-                                            >{symbol}</option>
+                                                value={symbol.symbol}
+                                            >{symbol.name}</option>
                                         ))
                                     }
                                 </select>
@@ -388,7 +392,7 @@ const OiSection = ({ oneScript, symbolSpecify }) => {
                             </div>
 
                             <div className='h-full flex flex-col items-start gap-2'>
-                                <p>As of {historical}. - Expiry {expiryValue.date || expiry[0].date}</p>
+                                <p>As of {historical}. - Expiry {expiryValue.date || expiry.length != 0 && expiry[0].date}</p>
                             </div>
 
                         </div>

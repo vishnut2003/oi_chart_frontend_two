@@ -33,7 +33,7 @@ export default function Home() {
                 <OiSection symbolSpecify={'NIFTY'} />
               </div>
               <div className="w-full">
-                <OiSection symbolSpecify={'BANKNIFTY'} />
+                <OiSection symbolSpecify={'NIFTY'} />
               </div>
             </div>
             :
