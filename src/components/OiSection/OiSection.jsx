@@ -20,11 +20,36 @@ const OiSection = ({ oneScript, symbolSpecify }) => {
 
     // Fields data
     const [symbolValue, setSymbolValue] = useState('Loading...')
-    const [expiryValue, setExpiryValue] = useState({date: '', expiry: ''})
+    const [expiryValue, setExpiryValue] = useState({ date: '', expiry: '' })
     const [intervalValue, setIntervelValue] = useState('5minute')
     const [historical, setHistorical] = useState('')
-    const [startRangeValue, setStartRangeValue] = useState({strike_price: ''})
-    const [endRangeValue, setEndRangeValue] = useState({strike_price: ''})
+    const [startRangeValue, setStartRangeValue] = useState({ strike_price: '' })
+    const [endRangeValue, setEndRangeValue] = useState({ strike_price: '' })
+
+    const [oiLoading, setOiLoading] = useState(false)
+
+    const [oiData, setOiData] = useState([])
+    const [barChartData, setBarChartData] = useState([])
+
+    // custom visiblity for strike filter
+    const [strikeRangeVisiblity, setStrikeRangeVisiblity] = useState()
+
+    // set XAxis limit
+    let xAxisDataPoints = 6;
+    let xAxisInterval = Math.round(oiData.length / xAxisDataPoints);
+
+    // ToolTip formatter
+    const DataFormater = (number) => {
+        if (number > 1000000000 || number < - 1000000000) {
+            return (number / 1000000000).toString() + 'B';
+        } else if (number > 1000000 || number < - 1000000) {
+            return (number / 1000000).toString() + 'M';
+        } else if (number > 1000 || number < - 1000) {
+            return (number / 1000).toString() + 'K';
+        } else {
+            return number.toString();
+        }
+    }
 
     useEffect(() => {
         // Fetch symbols for filter
@@ -50,6 +75,16 @@ const OiSection = ({ oneScript, symbolSpecify }) => {
                                     setStartRange(res.data)
                                     setEndRange(res.data)
                                 }
+
+                                // set Strike filter visibility
+                                axios.get(`${server}/settings/get/strike-range-filter`)
+                                    .then((res) => {
+                                        if (!res.data) {
+                                            setStrikeRangeVisiblity(false)
+                                        } else {
+                                            setStrikeRangeVisiblity(res.data)
+                                        }
+                                    })
                             })
                     })
                     .catch((err) => {
@@ -63,7 +98,11 @@ const OiSection = ({ oneScript, symbolSpecify }) => {
 
     }, [])
 
+
+
     const getOiData = async () => {
+
+        setOiLoading(true)
 
         let historicalDate;
         let strikeRange;
@@ -103,25 +142,29 @@ const OiSection = ({ oneScript, symbolSpecify }) => {
         }
 
         const formData = {
-            symbol: symbolValue || symbols[0].name,
+            symbol: symbolValue == 'Loading...' ? symbols[0].name : symbolValue,
             expiryDate: expiryValue.date || expiry[0].date,
             intervel: intervalValue,
             historical: historicalDate,
             strikeRange: strikeRange
         }
 
-        console.log(formData)
-
         axios.post(`${server}/breeze/oi-data`, formData)
             .then((res) => {
-                console.log(res)
+                setOiLoading(false)
+                setOiData(res.data.lineData)
+                setBarChartData(res.data.barData)
+            })
+            .catch((err) => {
+                console.log(err)
+                setOiLoading(false)
             })
     }
 
     const refreshExpiry = (e) => {
         let index = e.nativeEvent.target.selectedIndex;
         const symbol = e.nativeEvent.target[index].text
-        
+
         axios.get(`${server}/fyers/expiry/${symbol}`)
             .then((response) => {
                 const expiry = response.data ? response.data : []
@@ -144,69 +187,6 @@ const OiSection = ({ oneScript, symbolSpecify }) => {
                 }
             })
     }
-
-    const oiChangeData = [
-        {
-            CE: 1000,
-            PE: 5000,
-            Future: 1000,
-            time: '10:10'
-        },
-        {
-            CE: 3000,
-            PE: 4000,
-            Future: 1500,
-            time: '10:20'
-        },
-        {
-            CE: 2000,
-            PE: 6000,
-            Future: 2000,
-            time: '10:30'
-        },
-        {
-            CE: 6000,
-            PE: 5000,
-            Future: 1200,
-            time: '10:40'
-        },
-        {
-            CE: 6500,
-            PE: 3000,
-            Future: 2800,
-            time: '10:40'
-        },
-        {
-            CE: 5700,
-            PE: 1000,
-            Future: 2700,
-            time: '10:40'
-        },
-        {
-            CE: 2000,
-            PE: 3200,
-            Future: 3000,
-            time: '10:40'
-        },
-        {
-            CE: 1000,
-            PE: 1500,
-            Future: 3000,
-            time: '10:40'
-        },
-    ]
-
-    const forBarChart = [
-        {
-            name: 'CALL',
-            oi: 555765
-
-        },
-        {
-            name: 'PUT',
-            oi: 458876
-        }
-    ]
 
     const barchartColor = {
         redGreen: ["#22B16C", "#EF2421"],
@@ -231,7 +211,7 @@ const OiSection = ({ oneScript, symbolSpecify }) => {
                                     className='font-semibold text-base mb-1'
                                 >Symbol</p>
                                 <select
-                                value={symbolValue}
+                                    value={symbolValue}
                                     onChange={(e) => {
                                         setSymbolValue(e.target.value)
                                         refreshStrikePrice(e)
@@ -258,7 +238,7 @@ const OiSection = ({ oneScript, symbolSpecify }) => {
                                     id='expiry'
                                     value={expiryValue.date}
                                     onChange={(e) => {
-                                        setExpiryValue({date: e.target.value, expiry: ''})
+                                        setExpiryValue({ date: e.target.value, expiry: '' })
                                     }}
                                     className="bg-white shadow-md border-0 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
 
@@ -324,72 +304,75 @@ const OiSection = ({ oneScript, symbolSpecify }) => {
 
                         <div className='md:flex md:gap-5'>
 
-                            <div className='flex justify-between items-start gap-5'>
-                                <div className='mb-3 md:mb-0'>
-                                    <p
-                                        className='font-semibold text-base mb-1'
-                                    >Range</p>
-                                    <input
-                                        type="checkbox"
-                                        onChange={(e) => {
-                                            setRange(!range)
-                                            setStartRangeValue({strike_price: startRange[0].strike_price})
-                                            setEndRangeValue({strike_price: endRange[0].strike_price})
-                                        }}
-                                        defaultChecked={range}
-                                        id='range-check-box'
-                                        className={style.custom_checkbox_style}
-                                    />
+                            {
+                                strikeRangeVisiblity &&
+                                <div className='flex justify-between items-start gap-5'>
+                                    <div className='mb-3 md:mb-0'>
+                                        <p
+                                            className='font-semibold text-base mb-1'
+                                        >Range</p>
+                                        <input
+                                            type="checkbox"
+                                            onChange={(e) => {
+                                                setRange(!range)
+                                                setStartRangeValue({ strike_price: startRange[0].strike_price })
+                                                setEndRangeValue({ strike_price: endRange[0].strike_price })
+                                            }}
+                                            defaultChecked={range}
+                                            id='range-check-box'
+                                            className={style.custom_checkbox_style}
+                                        />
+                                    </div>
+                                    <div className='mb-3 md:mb-0'>
+                                        <p
+                                            className='font-semibold text-base mb-1'
+                                        >Range Start</p>
+                                        <select
+                                            disabled={!range}
+                                            value={startRangeValue.strike_price}
+                                            onChange={(e) => {
+                                                setStartRangeValue({ strike_price: e.target.value })
+                                            }}
+                                            id='start-range'
+                                            className="bg-white shadow-md border-0 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+                                            {
+                                                startRange.map((range, index) => (
+                                                    <option
+                                                        key={index}
+                                                        value={range.strike_price}
+                                                    >{range.strike_price ? range.strike_price : range}</option>
+                                                ))
+                                            }
+                                        </select>
+                                    </div>
+                                    <div className='mb-3 md:mb-0'>
+                                        <p
+                                            className='font-semibold text-base mb-1'
+                                        >Range End</p>
+                                        <select
+                                            disabled={!range}
+                                            id='end-range'
+                                            value={endRangeValue.strike_price}
+                                            onChange={(e) => {
+                                                setEndRangeValue({ strike_price: e.target.value })
+                                            }}
+                                            className="bg-white shadow-md border-0 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+                                            {
+                                                endRange.map((range, index, arr) => (
+                                                    <option
+                                                        key={index}
+                                                        value={range.strike_price}
+                                                        onChange={(e) => {
+                                                            setEndStrike(e.target.value)
+                                                            getOiData()
+                                                        }}
+                                                    >{range.strike_price ? range.strike_price : range}</option>
+                                                ))
+                                            }
+                                        </select>
+                                    </div>
                                 </div>
-                                <div className='mb-3 md:mb-0'>
-                                    <p
-                                        className='font-semibold text-base mb-1'
-                                    >Range Start</p>
-                                    <select
-                                        disabled={!range}
-                                        value={startRangeValue.strike_price}
-                                        onChange={(e) => {
-                                            setStartRangeValue({strike_price: e.target.value})
-                                        }}
-                                        id='start-range'
-                                        className="bg-white shadow-md border-0 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
-                                        {
-                                            startRange.map((range, index) => (
-                                                <option
-                                                    key={index}
-                                                    value={range.strike_price}
-                                                >{range.strike_price ? range.strike_price : range}</option>
-                                            ))
-                                        }
-                                    </select>
-                                </div>
-                                <div className='mb-3 md:mb-0'>
-                                    <p
-                                        className='font-semibold text-base mb-1'
-                                    >Range End</p>
-                                    <select
-                                        disabled={!range}
-                                        id='end-range'
-                                        value={endRangeValue.strike_price}
-                                        onChange={(e) => {
-                                            setEndRangeValue({strike_price: e.target.value})
-                                        }}
-                                        className="bg-white shadow-md border-0 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
-                                        {
-                                            endRange.map((range, index, arr) => (
-                                                <option
-                                                    key={index}
-                                                    value={range.strike_price}
-                                                    onChange={(e) => {
-                                                        setEndStrike(e.target.value)
-                                                        getOiData()
-                                                    }}
-                                                >{range.strike_price ? range.strike_price : range}</option>
-                                            ))
-                                        }
-                                    </select>
-                                </div>
-                            </div>
+                            }
 
                             <div className='h-full flex flex-col items-start gap-2'>
                                 <p>As of {historical}. - Expiry {expiryValue.date || expiry.length != 0 && expiry[0].date}</p>
@@ -397,8 +380,15 @@ const OiSection = ({ oneScript, symbolSpecify }) => {
 
                         </div>
                         <button
-                            className='py-2 px-3 bg-blue-600 text-white rounded-md shadow-md shadow-blue-600 text-sm mt-3'
-                            type='submit'>Get OI</button>
+                            className='py-2 px-3 bg-blue-600 text-white rounded-md shadow-md shadow-blue-600 text-sm mt-3 flex gap-2 items-center'
+                            type='submit'>
+                            {
+                                oiLoading &&
+                                <div
+                                    className='w-3 h-3 border border-white rounded-full border-b-0 border-l-0 animate-spin'
+                                ></div>
+                            }
+                            Get OI</button>
                     </form>
                 </div>
 
@@ -412,19 +402,19 @@ const OiSection = ({ oneScript, symbolSpecify }) => {
                             <p>OI</p>
                             <p>Future</p>
                         </div>
-                        <ResponsiveContainer width={'100%'} aspect={4.0 / 1.5}>
-                            <LineChart data={oiChangeData}>
+                        <ResponsiveContainer width={'100%'} aspect={6.0 / 2.5}>
+                            <LineChart data={oiData}>
 
-                                <XAxis dataKey='time' stroke='#A7A7A7' strokeWidth={'0.5px'} className='text-xs' />
+                                <XAxis dataKey='call_date_time' stroke='#A7A7A7' strokeWidth={'0.5px'} className='text-xs' interval={xAxisInterval} />
 
-                                <YAxis name='OI' fill='black' orientation='left' yAxisId='left-axis' stroke='#A7A7A7' strokeWidth={'0.5px'} className='text-xs' />
-                                <YAxis orientation='right' yAxisId='right-axis' stroke='#A7A7A7' strokeWidth={'0.5px'} className='text-xs' />
+                                <YAxis domain={['auto', 'auto']} tickFormatter={DataFormater} fill='black' orientation='left' yAxisId='left-axis' stroke='#A7A7A7' strokeWidth={'0.5px'} className='text-xs' />
+                                <YAxis domain={['auto', 'auto']} tickFormatter={DataFormater} orientation='right' yAxisId='right-axis' stroke='#A7A7A7' strokeWidth={'0.5px'} className='text-xs' />
 
-                                <Tooltip />
+                                <Tooltip formatter={DataFormater} />
                                 <CartesianGrid stroke="#cecece" strokeDasharray="3 3" strokeWidth={'0.5px'} />
-                                <Line type="monotone" dataKey="CE" stroke="#459962" yAxisId='left-axis' strokeWidth={'2px'} />
-                                <Line type="monotone" dataKey="PE" stroke="#C13F3F" yAxisId='left-axis' strokeWidth={'2px'} />
-                                <Line type="monotone" dataKey="Future" stroke="#6A6A6A" yAxisId='right-axis' strokeWidth={'2px'} strokeDasharray={'4'} />
+                                <Line type="monotone" dot={false} dataKey="call_oi_change" stroke="#459962" yAxisId='left-axis' strokeWidth={'1px'} />
+                                <Line type="monotone" dot={false} dataKey="put_oi_change" stroke="#C13F3F" yAxisId='left-axis' strokeWidth={'1px'} />
+                                <Line type="monotone" dot={false} dataKey="future_oi" stroke="#6A6A6A" yAxisId='right-axis' strokeWidth={'1px'} strokeDasharray={'4'} />
                             </LineChart>
                         </ResponsiveContainer>
 
@@ -441,19 +431,19 @@ const OiSection = ({ oneScript, symbolSpecify }) => {
                             <p>OI</p>
                             <p>Future</p>
                         </div>
-                        <ResponsiveContainer width={'100%'} aspect={4.0 / 1.5}>
-                            <LineChart data={oiChangeData}>
+                        <ResponsiveContainer width={'100%'} aspect={6.0 / 2.0}>
+                            <LineChart data={oiData}>
 
-                                <XAxis dataKey='time' stroke='#A7A7A7' strokeWidth={'0.5px'} className='text-xs' />
+                                <XAxis dataKey='call_date_time' stroke='#A7A7A7' strokeWidth={'0.5px'} className='text-xs' interval={xAxisInterval} />
 
-                                <YAxis name='OI' fill='black' orientation='left' yAxisId='left-axis' stroke='#A7A7A7' strokeWidth={'0.5px'} className='text-xs' />
-                                <YAxis orientation='right' yAxisId='right-axis' stroke='#A7A7A7' strokeWidth={'0.5px'} className='text-xs' />
+                                <YAxis domain={['auto', 'auto']} tickFormatter={DataFormater} name='OI' fill='black' orientation='left' yAxisId='left-axis' stroke='#A7A7A7' strokeWidth={'0.5px'} className='text-xs' />
+                                <YAxis domain={['auto', 'auto']} tickFormatter={DataFormater} orientation='right' yAxisId='right-axis' stroke='#A7A7A7' strokeWidth={'0.5px'} className='text-xs' />
 
-                                <Tooltip />
+                                <Tooltip formatter={DataFormater} />
                                 <CartesianGrid stroke="#cecece" strokeDasharray="3 3" strokeWidth={'0.5px'} />
-                                <Line type="monotone" dataKey="CE" stroke="#459962" yAxisId='left-axis' strokeWidth={'2px'} />
-                                <Line type="monotone" dataKey="PE" stroke="#C13F3F" yAxisId='left-axis' strokeWidth={'2px'} />
-                                <Line type="monotone" dataKey="Future" stroke="#6A6A6A" yAxisId='right-axis' strokeWidth={'2px'} strokeDasharray={'4'} />
+                                <Line type="monotone" dot={false} dataKey="call_Oi" stroke="#459962" yAxisId='left-axis' strokeWidth={'1px'} />
+                                <Line type="monotone" dot={false} dataKey="put_Oi" stroke="#C13F3F" yAxisId='left-axis' strokeWidth={'1px'} />
+                                <Line type="monotone" dot={false} dataKey="future_oi" stroke="#6A6A6A" yAxisId='right-axis' strokeWidth={'1px'} strokeDasharray={'4'} />
                             </LineChart>
                         </ResponsiveContainer>
 
@@ -470,18 +460,18 @@ const OiSection = ({ oneScript, symbolSpecify }) => {
                             <p>OI</p>
                             <p>Future</p>
                         </div>
-                        <ResponsiveContainer width={'100%'} aspect={4.0 / 1.5}>
-                            <LineChart data={oiChangeData}>
+                        <ResponsiveContainer width={'100%'} aspect={6.0 / 2.0}>
+                            <LineChart data={oiData}>
 
-                                <XAxis dataKey='time' stroke='#A7A7A7' strokeWidth={'0.5px'} className='text-xs' />
+                                <XAxis dataKey='call_date_time' stroke='#A7A7A7' strokeWidth={'0.5px'} className='text-xs' interval={xAxisInterval} />
 
-                                <YAxis name='OI' fill='black' orientation='left' yAxisId='left-axis' stroke='#A7A7A7' strokeWidth={'0.5px'} className='text-xs' />
-                                <YAxis orientation='right' yAxisId='right-axis' stroke='#A7A7A7' strokeWidth={'0.5px'} className='text-xs' />
+                                <YAxis domain={['auto', 'auto']} tickFormatter={DataFormater} name='OI' fill='black' orientation='left' yAxisId='left-axis' stroke='#A7A7A7' strokeWidth={'0.5px'} className='text-xs' />
+                                <YAxis domain={['auto', 'auto']} tickFormatter={DataFormater} orientation='right' yAxisId='right-axis' stroke='#A7A7A7' strokeWidth={'0.5px'} className='text-xs' />
 
-                                <Tooltip />
+                                <Tooltip formatter={DataFormater} />
                                 <CartesianGrid stroke="#cecece" strokeDasharray="3 3" strokeWidth={'0.5px'} />
-                                <Line type="monotone" dataKey="CE" stroke="#2977DB" yAxisId='left-axis' strokeWidth={'2px'} />
-                                <Line type="monotone" dataKey="Future" stroke="#6A6A6A" yAxisId='right-axis' strokeWidth={'2px'} strokeDasharray={'4'} />
+                                <Line type="monotone" dot={false} dataKey="ce_pe_diff" stroke="#2977DB" yAxisId='left-axis' strokeWidth={'1px'} />
+                                <Line type="monotone" dot={false} dataKey="future_oi" stroke="#6A6A6A" yAxisId='right-axis' strokeWidth={'1px'} />
                             </LineChart>
                         </ResponsiveContainer>
 
@@ -494,10 +484,10 @@ const OiSection = ({ oneScript, symbolSpecify }) => {
                     <h2 className='font-bold text-sm'>Change in OI</h2>
                     <div className='w-full h-56'>
                         <ResponsiveContainer>
-                            <BarChart data={forBarChart} width='100' height='100%'>
-                                <Bar dataKey='oi' fill='green' barSize={60}>
+                            <BarChart data={barChartData} width='100' height='100%'>
+                                <Bar dataKey='change_in_oi' fill='green' barSize={60}>
                                     <LabelList
-                                        dataKey="oi"
+                                        dataKey="change_in_oi"
                                         position="center"
                                         fill='white'
                                         fontSize={'13px'}
@@ -526,7 +516,7 @@ const OiSection = ({ oneScript, symbolSpecify }) => {
                     <h2 className='font-bold text-sm'>Total OI</h2>
                     <div className='w-full h-56'>
                         <ResponsiveContainer>
-                            <BarChart data={forBarChart} width='100' height='100%'>
+                            <BarChart data={barChartData} width='100' height='100%'>
                                 <Bar dataKey='oi' fill='green' barSize={60}>
                                     <LabelList
                                         dataKey="oi"

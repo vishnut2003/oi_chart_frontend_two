@@ -16,15 +16,27 @@ const Header = () => {
     const server = serverName();
 
     const [currentUser, setCurrentUser] = useState('')
+    const [notificationData, setNotificationData] = useState([])
 
     useEffect(() => {
         const userId = localStorage.getItem('user_id')
         axios.post(`${server}/users/verify`, { userId: userId })
             .then((res) => {
                 setCurrentUser(res.data);
+
+                // get all notifications
+                axios.get(`${server}/settings/notifications/get`)
+                    .then((res) => {
+                        setNotificationData(res.data)
+                    })
             })
             .catch(() => {
                 setCurrentUser('')
+                // get all notifications
+                axios.get(`${server}/settings/notifications/get`)
+                    .then((res) => {
+                        setNotificationData(res.data)
+                    })
             })
     }, [])
 
@@ -42,14 +54,14 @@ const Header = () => {
                 >
                     {
                         !currentUser ?
-                    <div className='flex'>
-                        <Link
-                            href='/login'
-                            className='py-1 px-5 bg-blue-600 rounded-md text-white shadow-sm shadow-blue-600'
-                        >Login</Link>
-                    </div>
-                    :
-                    ''
+                            <div className='flex'>
+                                <Link
+                                    href='/login'
+                                    className='py-1 px-5 bg-blue-600 rounded-md text-white shadow-sm shadow-blue-600'
+                                >Login</Link>
+                            </div>
+                            :
+                            ''
                     }
                     <div className='flex justify-end items-center gap-1'>
                         <div
@@ -74,28 +86,21 @@ const Header = () => {
                                     <div
                                         className={style.notificationFeed}
                                     >
-
-                                        <div
-                                            className='py-2 px-5 hover:bg-slate-100'
-                                        >
-                                            <h3
-                                                className='font-semibold text-sm'
-                                            >Notification Name</h3>
-                                            <p
-                                                className='font-light text-sm'
-                                            >Detail description about the notification</p>
-                                        </div>
-                                        <div
-                                            className='py-2 px-5 hover:bg-slate-100'
-                                        >
-                                            <h3
-                                                className='font-semibold text-sm'
-                                            >Notification Name</h3>
-                                            <p
-                                                className='font-light text-sm'
-                                            >Detail description about the notification</p>
-                                        </div>
-
+                                        {
+                                            notificationData.map((notification, index) => (
+                                                <div
+                                                    key={index}
+                                                    className='py-2 px-5 hover:bg-slate-100'
+                                                >
+                                                    <h3
+                                                        className='font-semibold text-sm'
+                                                    >{notification.title}</h3>
+                                                    <p
+                                                        className='font-light text-sm'
+                                                    >{notification.description}</p>
+                                                </div>
+                                            ))
+                                        }
 
                                     </div>
                                 </div>
