@@ -98,9 +98,11 @@ const OiSection = ({ oneScript, symbolSpecify }) => {
 
     }, [])
 
-
+    // let liveFetchData;
 
     const getOiData = async () => {
+
+        // clearInterval(liveFetchData)
 
         setOiLoading(true)
 
@@ -151,9 +153,25 @@ const OiSection = ({ oneScript, symbolSpecify }) => {
 
         axios.post(`${server}/breeze/oi-data`, formData)
             .then((res) => {
+                console.log(res.data)
                 setOiLoading(false)
                 setOiData(res.data.lineData)
                 setBarChartData(res.data.barData)
+
+                // if (liveData) {
+                //     liveFetchData = setInterval(() => {
+                //         axios.post(`${server}/breeze/oi-data`, formData)
+                //             .then((res) => {
+                //                 setOiLoading(false)
+                //                 setOiData(res.data.lineData)
+                //                 setBarChartData(res.data.barData)
+                //             })
+                //             .catch((err) => {
+                //                 console.log(err)
+                //                 setOiLoading(false)
+                //             })
+                //     }, 60000)
+                // }
             })
             .catch((err) => {
                 console.log(err)

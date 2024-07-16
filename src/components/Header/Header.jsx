@@ -140,8 +140,14 @@ const Header = () => {
                                             <Link
                                                 href='#'
                                                 onClick={() => {
-                                                    localStorage.clear()
-                                                    setCurrentUser('')
+                                                    const userId = localStorage.getItem('user_id')
+                                                    axios.get(`${server}/auth/logout/${userId}`)
+                                                        .then((res) => {
+                                                            if (res.data === true) {
+                                                                localStorage.clear()
+                                                                setCurrentUser('')
+                                                            }
+                                                        })
                                                 }}
                                                 className='bg-red-600 py-1 px-5 rounded-md text-white'
                                             >Logout</Link>
