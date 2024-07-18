@@ -19,6 +19,7 @@ const Header = () => {
     const [notificationData, setNotificationData] = useState([])
 
     useEffect(() => {
+        const server = serverName();
         const userId = localStorage.getItem('user_id')
         axios.post(`${server}/users/verify`, { userId: userId })
             .then((res) => {
@@ -87,7 +88,7 @@ const Header = () => {
                                 <div className='absolute right-0 top-14 md:top-9 bg-white shadow-md w-72'>
                                     <h2
                                         className='py-2 px-5 font-bold'
-                                    >What's New</h2>
+                                    >What is New</h2>
                                     <div
                                         className={style.notificationFeed}
                                     >

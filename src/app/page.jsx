@@ -14,9 +14,8 @@ export default function Home() {
   const [expireDaysLeft, setExpireDaysLeft] = useState()
   const [errorMessage, setErrorMessage] = useState('')
 
-  const server = serverName()
-
   useEffect(() => {
+    const server = serverName()
     const userId = localStorage.getItem('user_id');
     axios.post(`${server}/users/verify`, {userId})
       .then((res) => {

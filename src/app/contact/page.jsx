@@ -13,6 +13,7 @@ const Contact = () => {
     const [contactInfo, setContactInfo] = useState({})
 
     useEffect(() => {
+        const server = serverName()
         axios.get(`${server}/settings/contacts/get`)
             .then((res) => {
                 setContactInfo(res.data[0])

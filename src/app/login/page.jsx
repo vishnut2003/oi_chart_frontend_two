@@ -6,9 +6,8 @@ import { useRouter } from 'next/navigation';
 
 const Login = () => {
 
-  const router = useRouter()
-
   useEffect(() => {
+    const router = useRouter()
     const userExist = localStorage.getItem('user_id')
     if(userExist) router.push('/')
   }, [])

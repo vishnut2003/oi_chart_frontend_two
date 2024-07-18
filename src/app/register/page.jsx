@@ -6,9 +6,8 @@ import React, { useEffect } from 'react'
 
 const Register = () => {
 
-  const router = useRouter()
-
   useEffect(() => {
+    const router = useRouter()
     const userExist = localStorage.getItem('user_id')
     if(userExist) router.push('/')
   }, [])

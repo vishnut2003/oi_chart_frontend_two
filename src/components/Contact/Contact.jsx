@@ -14,6 +14,7 @@ const Contact = () => {
   const [successMessage, setSuccessMessage] = useState('')
 
   useEffect(() => {
+    const server = serverName()
     axios.get(`${server}/settings/contacts/get`)
       .then((res) => {
         setContactInfoFields(res.data[0])
