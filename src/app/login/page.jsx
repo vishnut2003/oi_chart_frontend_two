@@ -6,11 +6,12 @@ import { useRouter } from 'next/navigation';
 
 const Login = () => {
 
+  const router = useRouter()
+
   useEffect(() => {
-    const router = useRouter()
     const userExist = localStorage.getItem('user_id')
     if(userExist) router.push('/')
-  }, [])
+  }, [router])
 
   return (
     <div className='w-full h-screen flex justify-center items-center bg-slate-200'>
