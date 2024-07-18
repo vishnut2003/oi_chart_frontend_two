@@ -40,11 +40,7 @@ const OiSection = ({ oneScript, symbolSpecify }) => {
 
     // ToolTip formatter
     const DataFormater = (number) => {
-        if (number > 1000000000 || number < - 1000000000) {
-            return (number / 1000000000).toString() + 'B';
-        } else if (number > 1000000 || number < - 1000000) {
-            return (number / 1000000).toString() + 'M';
-        } else if (number > 1000 || number < - 1000) {
+        if (number > 1000 || number < - 1000) {
             return (number / 1000).toString() + 'K';
         } else {
             return number.toString();
@@ -521,7 +517,7 @@ const OiSection = ({ oneScript, symbolSpecify }) => {
 
 
                                 </Bar>
-                                <Tooltip cursor={{ fill: 'transparent' }} />
+                                <Tooltip formatter={DataFormater} cursor={{ fill: 'transparent' }} />
                                 <CartesianGrid stroke="#cecece" strokeDasharray="3 3" strokeWidth={'0.5px'} />
                                 <XAxis dataKey='name' stroke='#A7A7A7' strokeWidth={'0.5px'} className='text-xs' />
                             </BarChart>
@@ -553,7 +549,7 @@ const OiSection = ({ oneScript, symbolSpecify }) => {
 
 
                                 </Bar>
-                                <Tooltip cursor={{ fill: 'transparent' }} />
+                                <Tooltip formatter={DataFormater} cursor={{ fill: 'transparent' }} />
                                 <CartesianGrid stroke="#cecece" strokeDasharray="3 3" strokeWidth={'0.5px'} />
                                 <XAxis dataKey='name' stroke='#A7A7A7' strokeWidth={'0.5px'} className='text-xs' />
                             </BarChart>

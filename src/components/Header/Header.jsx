@@ -47,11 +47,16 @@ const Header = () => {
         <header className='px-8 py-4 shadow-md shadow-slate-200 bg-white w-full z-10'>
             <div className='flex justify-between items-center gap-5'>
                 <div className='min-w-24 md:w-36 '>
-                    <img src="/logo.png" alt="Logo" width="100%" />
+                    <Link href='/'>
+                        <img src="/logo.png" alt="Logo" width="100%" />
+                    </Link>
                 </div>
                 <div
                     className='flex gap-3 items-center'
                 >
+                    <div className='text-sm'>
+                        <Link href='/contact'>Contact</Link>
+                    </div>
                     {
                         !currentUser ?
                             <div className='flex'>
