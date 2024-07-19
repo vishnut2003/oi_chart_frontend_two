@@ -41,7 +41,7 @@ const OiSection = ({ oneScript, symbolSpecify }) => {
     // ToolTip formatter
     const DataFormater = (number) => {
         if (number > 1000 || number < - 1000) {
-            return (number / 1000).toString() + 'K';
+            return parseFloat(number / 100000).toFixed(2).toString() + 'L';
         } else {
             return number.toString();
         }
@@ -276,6 +276,7 @@ const OiSection = ({ oneScript, symbolSpecify }) => {
                                     }}
                                     className="bg-white shadow-md border-0 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
 
+                                    <option value='1minute'>1 min</option>
                                     <option value='5minute'>5 min</option>
                                     <option value='30minute'>30 min</option>
 
@@ -424,11 +425,14 @@ const OiSection = ({ oneScript, symbolSpecify }) => {
                                 <YAxis domain={['auto', 'auto']} tickFormatter={DataFormater} fill='black' orientation='left' yAxisId='left-axis' stroke='#A7A7A7' strokeWidth={'0.5px'} className='text-xs' />
                                 <YAxis domain={['auto', 'auto']} tickFormatter={DataFormater} orientation='right' yAxisId='right-axis' stroke='#A7A7A7' strokeWidth={'0.5px'} className='text-xs' />
 
-                                <Tooltip formatter={DataFormater} />
+                                <Tooltip 
+                                formatter={DataFormater}
+                                />
+
                                 <CartesianGrid stroke="#cecece" strokeDasharray="3 3" strokeWidth={'0.5px'} />
-                                <Line type="monotone" dot={false} dataKey="call_oi_change" stroke="#459962" yAxisId='left-axis' strokeWidth={'1px'} />
-                                <Line type="monotone" dot={false} dataKey="put_oi_change" stroke="#C13F3F" yAxisId='left-axis' strokeWidth={'1px'} />
-                                <Line type="monotone" dot={false} dataKey="future_oi" stroke="#6A6A6A" yAxisId='right-axis' strokeWidth={'1px'} strokeDasharray={'4'} />
+                                <Line type="monotone" name='CE' dot={false} dataKey="call_oi_change" stroke="#459962" yAxisId='left-axis' strokeWidth={'1px'} />
+                                <Line type="monotone" name='PE' dot={false} dataKey="put_oi_change" stroke="#C13F3F" yAxisId='left-axis' strokeWidth={'1px'} />
+                                <Line type="monotone" name='Futures' dot={false} dataKey="future_oi" stroke="#6A6A6A" yAxisId='right-axis' strokeWidth={'1px'} strokeDasharray={'4'} />
                             </LineChart>
                         </ResponsiveContainer>
 
@@ -455,9 +459,9 @@ const OiSection = ({ oneScript, symbolSpecify }) => {
 
                                 <Tooltip formatter={DataFormater} />
                                 <CartesianGrid stroke="#cecece" strokeDasharray="3 3" strokeWidth={'0.5px'} />
-                                <Line type="monotone" dot={false} dataKey="call_Oi" stroke="#459962" yAxisId='left-axis' strokeWidth={'1px'} />
-                                <Line type="monotone" dot={false} dataKey="put_Oi" stroke="#C13F3F" yAxisId='left-axis' strokeWidth={'1px'} />
-                                <Line type="monotone" dot={false} dataKey="future_oi" stroke="#6A6A6A" yAxisId='right-axis' strokeWidth={'1px'} strokeDasharray={'4'} />
+                                <Line type="monotone" name='CE' dot={false} dataKey="call_Oi" stroke="#459962" yAxisId='left-axis' strokeWidth={'1px'} />
+                                <Line type="monotone" name='PE' dot={false} dataKey="put_Oi" stroke="#C13F3F" yAxisId='left-axis' strokeWidth={'1px'} />
+                                <Line type="monotone" name='Futures' dot={false} dataKey="future_oi" stroke="#6A6A6A" yAxisId='right-axis' strokeWidth={'1px'} strokeDasharray={'4'} />
                             </LineChart>
                         </ResponsiveContainer>
 
@@ -484,8 +488,8 @@ const OiSection = ({ oneScript, symbolSpecify }) => {
 
                                 <Tooltip formatter={DataFormater} />
                                 <CartesianGrid stroke="#cecece" strokeDasharray="3 3" strokeWidth={'0.5px'} />
-                                <Line type="monotone" dot={false} dataKey="ce_pe_diff" stroke="#2977DB" yAxisId='left-axis' strokeWidth={'1px'} />
-                                <Line type="monotone" dot={false} dataKey="future_oi" stroke="#6A6A6A" yAxisId='right-axis' strokeWidth={'1px'} />
+                                <Line type="monotone" name='PE CE DIFF' dot={false} dataKey="ce_pe_diff" stroke="#2977DB" yAxisId='left-axis' strokeWidth={'1px'} />
+                                <Line type="monotone" name='Futures' dot={false} dataKey="future_oi" stroke="#6A6A6A" yAxisId='right-axis' strokeWidth={'1px'} />
                             </LineChart>
                         </ResponsiveContainer>
 
@@ -499,7 +503,7 @@ const OiSection = ({ oneScript, symbolSpecify }) => {
                     <div className='w-full h-56'>
                         <ResponsiveContainer>
                             <BarChart data={barChartData} width='100' height='100%'>
-                                <Bar dataKey='change_in_oi' fill='green' barSize={60}>
+                                <Bar dataKey='change_in_oi' name='Oi' fill='green' barSize={60}>
                                     <LabelList
                                         dataKey="change_in_oi"
                                         position="center"
@@ -531,7 +535,7 @@ const OiSection = ({ oneScript, symbolSpecify }) => {
                     <div className='w-full h-56'>
                         <ResponsiveContainer>
                             <BarChart data={barChartData} width='100' height='100%'>
-                                <Bar dataKey='oi' fill='green' barSize={60}>
+                                <Bar dataKey='oi' name='Oi' fill='green' barSize={60}>
                                     <LabelList
                                         dataKey="oi"
                                         position="center"

@@ -108,6 +108,12 @@ const LoginForm = () => {
             >Do not have an Account? 
                 <Link href="/register" className='text-blue-600'> Register</Link>
             </p>
+            
+            <p
+            className='mt-2 text-sm text-center font-medium'
+            >Forget password? 
+                <Link href="/reset-password" className='text-blue-600'> Reset</Link>
+            </p>
         </div>
     )
 }
