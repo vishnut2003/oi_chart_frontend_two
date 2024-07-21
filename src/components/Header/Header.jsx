@@ -20,8 +20,8 @@ const Header = () => {
 
     useEffect(() => {
         const server = serverName();
-        const userId = localStorage.getItem('user_id')
-        axios.post(`${server}/users/verify`, { userId: userId })
+        const session = localStorage.getItem('session')
+        axios.post(`${server}/users/verify`, { session })
             .then((res) => {
                 setCurrentUser(res.data);
 
@@ -146,14 +146,8 @@ const Header = () => {
                                             <Link
                                                 href='#'
                                                 onClick={() => {
-                                                    const userId = localStorage.getItem('user_id')
-                                                    axios.get(`${server}/auth/logout/${userId}`)
-                                                        .then((res) => {
-                                                            if (res.data === true) {
-                                                                localStorage.clear()
-                                                                setCurrentUser('')
-                                                            }
-                                                        })
+                                                    localStorage.clear()
+                                                    setCurrentUser('')
                                                 }}
                                                 className='bg-red-600 py-1 px-5 rounded-md text-white'
                                             >Logout</Link>

@@ -3,14 +3,24 @@
 import React, { useEffect } from 'react';
 import LoginForm from "@/components/LoginForm/LoginForm";
 import { useRouter } from 'next/navigation';
+import serverName from '@/serverName';
+import axios from 'axios';
 
 const Login = () => {
+
+  const server = serverName()
 
   const router = useRouter()
 
   useEffect(() => {
-    const userExist = localStorage.getItem('user_id')
-    if(userExist) router.push('/')
+    const session = localStorage.getItem('session')
+    axios.post(`${server}/users/verify`, {session})
+      .then((res) => {
+        router.push('/')
+      })
+      .catch((err) => {
+        console.log(err)
+      })
   }, [router])
 
   return (

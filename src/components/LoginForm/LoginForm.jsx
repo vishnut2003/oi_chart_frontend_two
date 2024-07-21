@@ -25,7 +25,7 @@ const LoginForm = () => {
         e.preventDefault()
         axios.post(`${server}/auth/login`, formData)
             .then((res) => {
-                localStorage.setItem('user_id', res.data.user._id)
+                localStorage.setItem('session', res.data)
                 router.push('/')
             })
             .catch(({response}) => {

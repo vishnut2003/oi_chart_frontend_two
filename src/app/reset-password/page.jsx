@@ -4,7 +4,7 @@ import ResetPasswordForm from '@/components/ResetPasswordForm/ResetPasswordForm'
 import { useRouter } from 'next/navigation'
 import React, { useEffect } from 'react'
 
-const page = () => {
+const ResetPassword = () => {
 
     const router = useRouter()
 
@@ -20,4 +20,4 @@ const page = () => {
     )
 }
 
-export default page
+export default ResetPassword

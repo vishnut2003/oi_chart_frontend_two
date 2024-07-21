@@ -16,10 +16,11 @@ export default function Home() {
 
   useEffect(() => {
     const server = serverName()
-    const userId = localStorage.getItem('user_id');
-    axios.post(`${server}/users/verify`, {userId})
+    const session = localStorage.getItem('session');
+    axios.post(`${server}/users/verify`, {session})
       .then((res) => {
         setLoggedIn(true)
+        const userId = res.data._id
         axios.post(`${server}/users/get-expiry-left`, {userId})
           .then((res) => {
             setExired(res.data.expired)

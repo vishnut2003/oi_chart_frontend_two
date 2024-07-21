@@ -17,8 +17,8 @@ const Dashboard = () => {
   const [isAdmin, setIsAdmin] = useState(false)
 
   useEffect(() => {
-    const userId = localStorage.getItem('user_id')
-    axios.post(`${server}/users/verify`, {userId})
+    const session = localStorage.getItem('session')
+    axios.post(`${server}/users/verify`, {session})
       .then((res) => {
         setIsAdmin(res.data.isAdmin)
       })
