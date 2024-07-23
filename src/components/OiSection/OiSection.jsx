@@ -34,6 +34,9 @@ const OiSection = ({ oneScript, symbolSpecify }) => {
     // custom visiblity for strike filter
     const [strikeRangeVisiblity, setStrikeRangeVisiblity] = useState()
 
+    // Fetch live data through intervel
+    const [fetchingLiveId, setFetchingLiveId] = useState(0)
+
     // set XAxis limit
     let xAxisDataPoints = 6;
     let xAxisInterval = Math.round(oiData.length / xAxisDataPoints);
@@ -94,9 +97,19 @@ const OiSection = ({ oneScript, symbolSpecify }) => {
 
     }, [])
 
-    let liveFetchData;
+    const clearPrevFetch = () => {
+        clearInterval(fetchingLiveId)
+    }
 
-    const getOiData = async () => {
+    const runOiData = () => {
+        const intervelId = setInterval(() => {
+            getOiData(false)
+        }, 20000)
+
+        setFetchingLiveId(intervelId)
+    }
+
+    const getOiData = async (fetchingLiveStatus) => {
 
         setOiLoading(true)
 
@@ -145,14 +158,17 @@ const OiSection = ({ oneScript, symbolSpecify }) => {
             strikeRange: strikeRange
         }
 
-        console.log(formData)
-
         axios.post(`${server}/breeze/oi-data`, formData)
             .then((res) => {
                 console.log(res.data)
                 setOiLoading(false)
                 setOiData(res.data.lineData)
                 setBarChartData(res.data.barData)
+
+                // set live fetching
+                if (fetchingLiveStatus) {
+                    runOiData()
+                }
             })
             .catch((err) => {
                 console.log(err)
@@ -202,7 +218,8 @@ const OiSection = ({ oneScript, symbolSpecify }) => {
                     >Call Vs Put Open Interest</h2>
                     <form onSubmit={(e) => {
                         e.preventDefault()
-                        getOiData()
+                        clearPrevFetch()
+                        getOiData(true)
                     }}>
                         <div className='md:flex md:gap-5 mb-5'>
                             <div className='mb-3 md:mb-0'>
@@ -408,16 +425,16 @@ const OiSection = ({ oneScript, symbolSpecify }) => {
                                 <XAxis dataKey='call_date_time' stroke='#A7A7A7' strokeWidth={'0.5px'} className='text-xs' interval={xAxisInterval} />
 
                                 <YAxis domain={['auto', 'auto']} tickFormatter={DataFormater} fill='black' orientation='left' yAxisId='left-axis' stroke='#A7A7A7' strokeWidth={'0.5px'} className='text-xs' />
-                                <YAxis domain={['auto', 'auto']} tickFormatter={DataFormater} orientation='right' yAxisId='right-axis' stroke='#A7A7A7' strokeWidth={'0.5px'} className='text-xs' />
+                                {/* <YAxis domain={['auto', 'auto']} tickFormatter={DataFormater} orientation='right' yAxisId='right-axis' stroke='#A7A7A7' strokeWidth={'0.5px'} className='text-xs' /> */}
 
-                                <Tooltip 
-                                formatter={DataFormater}
+                                <Tooltip
+                                    formatter={DataFormater}
                                 />
 
                                 <CartesianGrid stroke="#cecece" strokeDasharray="3 3" strokeWidth={'0.5px'} />
                                 <Line type="monotone" name='CE' dot={false} dataKey="call_oi_change" stroke="#459962" yAxisId='left-axis' strokeWidth={'1px'} />
                                 <Line type="monotone" name='PE' dot={false} dataKey="put_oi_change" stroke="#C13F3F" yAxisId='left-axis' strokeWidth={'1px'} />
-                                <Line type="monotone" name='Futures' dot={false} dataKey="future_oi" stroke="#6A6A6A" yAxisId='right-axis' strokeWidth={'1px'} strokeDasharray={'4'} />
+                                {/* <Line type="monotone" name='Futures' dot={false} dataKey="future_oi" stroke="#6A6A6A" yAxisId='right-axis' strokeWidth={'1px'} strokeDasharray={'4'} /> */}
                             </LineChart>
                         </ResponsiveContainer>
 
@@ -440,13 +457,13 @@ const OiSection = ({ oneScript, symbolSpecify }) => {
                                 <XAxis dataKey='call_date_time' stroke='#A7A7A7' strokeWidth={'0.5px'} className='text-xs' interval={xAxisInterval} />
 
                                 <YAxis domain={['auto', 'auto']} tickFormatter={DataFormater} name='OI' fill='black' orientation='left' yAxisId='left-axis' stroke='#A7A7A7' strokeWidth={'0.5px'} className='text-xs' />
-                                <YAxis domain={['auto', 'auto']} tickFormatter={DataFormater} orientation='right' yAxisId='right-axis' stroke='#A7A7A7' strokeWidth={'0.5px'} className='text-xs' />
+                                {/* <YAxis domain={['auto', 'auto']} tickFormatter={DataFormater} orientation='right' yAxisId='right-axis' stroke='#A7A7A7' strokeWidth={'0.5px'} className='text-xs' /> */}
 
                                 <Tooltip formatter={DataFormater} />
                                 <CartesianGrid stroke="#cecece" strokeDasharray="3 3" strokeWidth={'0.5px'} />
                                 <Line type="monotone" name='CE' dot={false} dataKey="call_Oi" stroke="#459962" yAxisId='left-axis' strokeWidth={'1px'} />
                                 <Line type="monotone" name='PE' dot={false} dataKey="put_Oi" stroke="#C13F3F" yAxisId='left-axis' strokeWidth={'1px'} />
-                                <Line type="monotone" name='Futures' dot={false} dataKey="future_oi" stroke="#6A6A6A" yAxisId='right-axis' strokeWidth={'1px'} strokeDasharray={'4'} />
+                                {/* <Line type="monotone" name='Futures' dot={false} dataKey="future_oi" stroke="#6A6A6A" yAxisId='right-axis' strokeWidth={'1px'} strokeDasharray={'4'} /> */}
                             </LineChart>
                         </ResponsiveContainer>
 
@@ -469,12 +486,12 @@ const OiSection = ({ oneScript, symbolSpecify }) => {
                                 <XAxis dataKey='call_date_time' stroke='#A7A7A7' strokeWidth={'0.5px'} className='text-xs' interval={xAxisInterval} />
 
                                 <YAxis domain={['auto', 'auto']} tickFormatter={DataFormater} name='OI' fill='black' orientation='left' yAxisId='left-axis' stroke='#A7A7A7' strokeWidth={'0.5px'} className='text-xs' />
-                                <YAxis domain={['auto', 'auto']} tickFormatter={DataFormater} orientation='right' yAxisId='right-axis' stroke='#A7A7A7' strokeWidth={'0.5px'} className='text-xs' />
+                                {/* <YAxis domain={['auto', 'auto']} tickFormatter={DataFormater} orientation='right' yAxisId='right-axis' stroke='#A7A7A7' strokeWidth={'0.5px'} className='text-xs' /> */}
 
                                 <Tooltip formatter={DataFormater} />
                                 <CartesianGrid stroke="#cecece" strokeDasharray="3 3" strokeWidth={'0.5px'} />
                                 <Line type="monotone" name='PE CE DIFF' dot={false} dataKey="ce_pe_diff" stroke="#2977DB" yAxisId='left-axis' strokeWidth={'1px'} />
-                                <Line type="monotone" name='Futures' dot={false} dataKey="future_oi" stroke="#6A6A6A" yAxisId='right-axis' strokeWidth={'1px'} />
+                                {/* <Line type="monotone" name='Futures' dot={false} dataKey="future_oi" stroke="#6A6A6A" yAxisId='right-axis' strokeWidth={'1px'} /> */}
                             </LineChart>
                         </ResponsiveContainer>
 
