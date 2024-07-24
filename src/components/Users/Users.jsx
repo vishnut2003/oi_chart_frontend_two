@@ -16,6 +16,7 @@ const Users = () => {
             .then((res) => {
                 console.log(res)
                 setUsers(res.data)
+                console.log(res.data)
             })
             .catch((err) => {
                 console.log(err)
@@ -103,6 +104,9 @@ const Users = () => {
                                 }}
                                     className='bg-green-600 text-white py-1 text-sm px-4 rounded-md'
                                 >Update</button>
+                            </div>
+                            <div>
+                                <p className='text-sm text-red-500'>{user.expiryDate.substring(0, 10)}</p>
                             </div>
                             <div>
                                 {

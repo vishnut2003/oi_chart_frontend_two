@@ -6,6 +6,7 @@ import { Bar, BarChart, CartesianGrid, Cell, LabelList, Line, LineChart, Respons
 import axios from 'axios';
 import moment from 'moment'
 import serverName from '@/serverName'
+import { connectWebSocket, closeWebSocket } from './oiWebsocket';
 
 const OiSection = ({ oneScript, symbolSpecify }) => {
 
@@ -28,14 +29,11 @@ const OiSection = ({ oneScript, symbolSpecify }) => {
 
     const [oiLoading, setOiLoading] = useState(false)
 
-    const [oiData, setOiData] = useState([])
+    var [oiData, setOiData] = useState([])
     const [barChartData, setBarChartData] = useState([])
 
     // custom visiblity for strike filter
     const [strikeRangeVisiblity, setStrikeRangeVisiblity] = useState()
-
-    // Fetch live data through intervel
-    const [fetchingLiveId, setFetchingLiveId] = useState(0)
 
     // set XAxis limit
     let xAxisDataPoints = 6;
@@ -97,19 +95,7 @@ const OiSection = ({ oneScript, symbolSpecify }) => {
 
     }, [])
 
-    const clearPrevFetch = () => {
-        clearInterval(fetchingLiveId)
-    }
-
-    const runOiData = () => {
-        const intervelId = setInterval(() => {
-            getOiData(false)
-        }, 20000)
-
-        setFetchingLiveId(intervelId)
-    }
-
-    const getOiData = async (fetchingLiveStatus) => {
+    const getOiData = async () => {
 
         setOiLoading(true)
 
@@ -159,16 +145,18 @@ const OiSection = ({ oneScript, symbolSpecify }) => {
         }
 
         axios.post(`${server}/breeze/oi-data`, formData)
-            .then((res) => {
+            .then(async (res) => {
                 console.log(res.data)
                 setOiLoading(false)
                 setOiData(res.data.lineData)
                 setBarChartData(res.data.barData)
-
-                // set live fetching
-                if (fetchingLiveStatus) {
-                    runOiData()
-                }
+                connectWebSocket(formData, updateLatestOi, res.data.lineData)
+                    .then(() => {
+                        console.log('WebSocket Disconnected!')
+                    })
+                    .catch((err) => {
+                        console.log(err)
+                    })
             })
             .catch((err) => {
                 console.log(err)
@@ -203,6 +191,13 @@ const OiSection = ({ oneScript, symbolSpecify }) => {
             })
     }
 
+    const updateLatestOi = (latestOi) => {
+        console.log(latestOi)
+        if(liveData) {
+            setOiData(latestOi)
+        }
+    }
+
     const barchartColor = {
         redGreen: ["#22B16C", "#EF2421"],
     };
@@ -218,8 +213,8 @@ const OiSection = ({ oneScript, symbolSpecify }) => {
                     >Call Vs Put Open Interest</h2>
                     <form onSubmit={(e) => {
                         e.preventDefault()
-                        clearPrevFetch()
-                        getOiData(true)
+                        closeWebSocket()
+                        getOiData()
                     }}>
                         <div className='md:flex md:gap-5 mb-5'>
                             <div className='mb-3 md:mb-0'>
